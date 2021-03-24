@@ -24,11 +24,8 @@ def gui_path_select():
     root.mainloop()
     return pathte[0]
 
-def process(path):
-    #传入路径，返回无空白无注释，按行分割的字符串列表，每个列表元素是一条指令。
-    fopen = open(path)
-    raw = fopen.read()
-    fopen.close()
+def process(raw):
+    #传入原始文本，返回无空白无注释，按行分割的字符串列表，每个列表元素是一条指令。
     nospace = ''
     for i in raw:
         if i == ' ':
@@ -235,9 +232,12 @@ def sym_pro(instruct_list):
     return instruct_list
 
 def main():
-    #整合
+    #功能整合，先选择文件，接着调用process函数去除空白与注释，在对符号进行处理，接着翻译两种指令，最后输出翻译后的机器码文件。
     path = gui_path_select()
-    ins_lis = sym_pro(process(path))
+    fopen = open(path)
+    raw = fopen.read()
+    fopen.close()
+    ins_lis = sym_pro(process(raw))
     trans_a(ins_lis)
     trans_c(ins_lis)
     new_path = path[:-3] + 'hack'
