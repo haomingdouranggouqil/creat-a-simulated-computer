@@ -104,3 +104,10 @@
 在CPU模拟器上运行翻译后的机器码文件，效果与汇编程序一致。
 
 ![62](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/62.png)
+
+- 虚拟机实现
+
+测试如下，左图为翻译后的汇编，右图为原始vm文件在vm模拟器上运行结果，可见效果一致。
+![71](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/71.png)
+
+
