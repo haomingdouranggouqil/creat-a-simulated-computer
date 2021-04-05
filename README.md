@@ -105,9 +105,161 @@
 
 ![62](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/62.png)
 
-- 虚拟机实现
+- 高级语言
 
-测试如下，左图为翻译后的汇编，右图为原始vm文件在vm模拟器上运行结果，可见效果一致。
-![71](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/71.png)
+  我们已经可以在该模拟计算机上编写简单汇编语言代码并运行，可以以此为基础设计一门高级语言。
+
+  - Jack语言设计：
+
+    - 模仿Java语言，设计一门简单的面向对象编程，且运行在堆栈式虚拟机上的高级语言，取名为Jack，该语言为一种简易的类Java语言。
+
+    - Jack的基本编程单元是类，定义具有如下格式：
+
+      > class name{
+      >
+      > ​	成员字段(field)和静态变量声明
+      >
+      > ​	子程序声明
+      >
+      > }
+
+    - 符号：
+
+      | //   | 单行注释                 |
+      | ---- | ------------------------ |
+      | /**/ | 多行注释                 |
+      | ()   | 封装算术表达式和参数列表 |
+      | []   | 数组索引                 |
+      | ,    | 变量列表分隔符           |
+      | ;    | 语句终止符               |
+      | .    | 类成员                   |
+
+    - 保留字
+
+      | class,constructor,method,function | 程序组件 |
+      | --------------------------------- | -------- |
+      | int,boolean,char,void             | 基本类型 |
+      | var,static,field                  | 变量声明 |
+      | let,do,if,else,while,return       | 表达式   |
+      | true,false,null                   | 常数     |
+      | this                              | 对象引用 |
+
+    - 数据类型
+
+      | int     | 16位2补码   |
+      | ------- | ----------- |
+      | boolean | false或true |
+      | char    | Unicode字符 |
+
+  - 构建语法分析器模块
+
+    - 先实现字元化功能，将jack源代码文件输出为xml文件。
+
+      ![101](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/101.png)
+
+    - 语法分析：承接之前工作，输出带有语法分析结构的xml文件
+
+      ![102](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/102.png)
+
+  - 构建代码生成器
+
+    - 语法分析树已完成，通过后缀表示法来生成字节码
+
+    - 内存分配
+
+      | 子程序局部变量 | local虚拟段    |
+      | -------------- | -------------- |
+      | 子程序参数变量 | argument虚拟段 |
+      | 类文件静态变量 | static虚拟段   |
+      | 访问类对象     | this虚拟段     |
+      | 访问数组对象   | that虚拟段     |
+
+    - 子程序调用
+
+      - 调用函数前，调用者本身将函数的参数压入堆栈，若是类方法，则参数须是该方法操作对象的引用
+      - 构造方法或函数时，需要为新对象分配内存段并将this指向该内存段基地址。
+
+  - 经过构建语法分析器和代码生成器两个阶段，成功将Jack语言代码转化为虚拟机字节码vm文件，最终代码与效果如下图所示：
+
+    
+
+    ![111](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/111.png)
+
+    ![112](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/112.png)
+
+  - 构建虚拟机：
+
+    - 我们已经生成了字节码，现构建一个虚拟机程序将字节码转化为汇编代码，再由汇编器编译为机器码在硬件模拟器上运行。
+
+    - 内存管理
+
+      | 段名      | 功能                                 | 说明                                                         |
+      | --------- | ------------------------------------ | ------------------------------------------------------------ |
+      | argument  | 存储函数的参数                       | 进入函数时为函数参数动态分配内存                             |
+      | local     | 存储函数局部变量                     | 进入函数时动态分配内存且初始化为0                            |
+      | static    | 存储同一vm文件中所有函数共享静态变量 | 被同一vm文件所有函数共用                                     |
+      | constant  | 包含所有常数，范围0~32767            | 对程序中所有程序可见                                         |
+      | this/that | 通用段，与堆中不同区域对应           | 任何函数可使用这两段曹总堆中区域                             |
+      | pointer   | 由2内存单元组成，保存this/that基地址 | 任何函数可将pointer0/1设置到某一地址上，相当于将this\that段联结到起始于该地址的堆区域 |
+      | temp      | 由8个内存单元组成，保存临时变量      | 被任何函数共享                                               |
+
+      此8个虚拟内存段由pop与push命令直接操作
+
+    - 程序流程控制
+
+      | label symbol    | 标签声明                 |
+      | --------------- | ------------------------ |
+      | goto symbol     | 无条件分支               |
+      | if-goto symbol  | 条件分支                 |
+      | function 函数名 | 函数声明                 |
+      | call 函数名     | 调用函数                 |
+      | return          | 将程序控制权返回给调用者 |
+
+    - RAM使用
+
+      - 该模拟计算机有32K个16位字节，分配如下
+
+        | RAM地址     | 功能                              |
+        | ----------- | --------------------------------- |
+        | 0-15        | 16个虚拟存储器                    |
+        | 0           | SP，栈指针，指向栈顶              |
+        | 1           | LCL，指向当前函数local段基地址    |
+        | 2           | ARG，指向当前函数argument段基地址 |
+        | 3           | THIS，指向当前this段在堆中基地址  |
+        | 4           | THAT，指向当前that段在堆中基地址  |
+        | 5~12        | 保存temp段内容                    |
+        | 13~15       | 用作通用寄存器                    |
+        | 16~255      | 存储静态变量                      |
+        | 256~2047    | 栈                                |
+        | 2048~16383  | 堆（存储对象与数组）              |
+        | 16384~24575 | 内存映像I/O                       |
+
+    - 分两部分成功构建虚拟机，第一部分成功实现堆栈运算和内存访问，第二部分在此基础实现程序控制功能。
+
+      ![72](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/72.png)
+
+      测试如下，左图为翻译后的汇编，右图为原始vm文件在vm模拟器上运行结果，可见效果一致。
+
+      ![71](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/71.png)
+
+  - 构建OS标准库
+
+    - 高级语言业已完成，若想要方便的在该模拟计算机上用高级语言编程，需要编写一些基本的OS库。
+
+    - | Math     | 提供基本数学运算                     |
+      | -------- | ------------------------------------ |
+      | String   | 实现字符串String类型和字符串相关操作 |
+      | Array    | 实现数组Array类型和数组相关操作      |
+      | Output   | 处理屏幕文字输出                     |
+      | Screen   | 处理屏幕上图像输出                   |
+      | Keyboard | 处理键盘用户输入                     |
+      | Memory   | 处理内存操作                         |
+      | Sys      | 提供与程序执行相关的服务             |
+
+    - ![121](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/121.png)
+
+- 整体测试
+  - 使用高级语言编写一个碰球小游戏，使其被编译为机器码后能运行在硬件模拟器上
+  - ![131](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/131.png)
 
 
