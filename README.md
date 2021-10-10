@@ -19,7 +19,8 @@
 
 - 算术逻辑单元（ALU）
 
-  使用基础逻辑门，实现了半加器，全加器，加法器，增量器，最后组装成ALU。![21](\pic\21.png)
+  使用基础逻辑门，实现了半加器，全加器，加法器，增量器，最后组装成ALU。
+  ![21](https://github.com/haomingdouranggouqil/creat-a-simulated-computer/blob/main/pic/21.png)
 
   将组装好的ALU在硬件模拟器上运行，测试结果如下，正确。
 
